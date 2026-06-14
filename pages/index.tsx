@@ -20,7 +20,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async () => {
   try {
     files = fs
       .readdirSync(dir)
-      .filter(f => ALLOWED.includes(path.extname(f).toLowerCase()))
+      .filter(f => ALLOWED.includes(path.extname(f).toLowerCase()) && !f.startsWith('_'))
       .map(f => ({
         name: f,
         base: path.basename(f, path.extname(f)),

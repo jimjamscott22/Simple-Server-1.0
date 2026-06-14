@@ -1,12 +1,12 @@
 # Simple-Server 1.0
 
-A lightweight development server built on Next.js that serves and renders static HTML, JSX, and TSX files in the browser, with a built-in terminal-style dashboard.
+A lightweight preview server built on Next.js that serves static HTML and renders JSX/TSX preview files in the browser, with a built-in terminal-style dashboard.
 
 ---
 
 ## Overview
 
-Simple-Server provides a zero-configuration local development environment for previewing and testing frontend files. Drop in an `.html`, `.jsx`, or `.tsx` file, start the server, and view it rendered live in your browser. The dashboard (`public/index.html`) gives you a terminal-style status interface showing server state.
+Simple-Server provides a zero-configuration local development environment for previewing and testing frontend files. Drop an `.html`, `.jsx`, or `.tsx` file into `previews/`, start the server, and open the dashboard to view it in the browser.
 
 ---
 
@@ -47,7 +47,7 @@ The server starts at [http://localhost:3000](http://localhost:3000) with hot-rel
 
 ### 3. View the dashboard
 
-Open [http://localhost:3000](http://localhost:3000) in your browser to see the terminal-style server dashboard.
+Open [http://localhost:3000](http://localhost:3000) in your browser to see the terminal-style dashboard. It lists files from `previews/` and links to each preview.
 
 ---
 
@@ -68,11 +68,16 @@ Open [http://localhost:3000](http://localhost:3000) in your browser to see the t
 Simple-Server-1.0/
 ├── app/
 │   ├── layout.tsx        # Root layout (fonts, metadata, global styles)
-│   ├── page.tsx          # Main dashboard entry point
 │   └── globals.css       # Global CSS (Tailwind base styles)
+├── pages/
+│   ├── index.tsx         # Dashboard that lists preview files
+│   ├── preview/[slug].tsx # Preview route for HTML, JSX, and TSX files
+│   └── api/html.ts       # HTML file loader used by iframe previews
+├── previews/
+│   ├── example.tsx       # Example React component preview
+│   └── *.html|*.jsx|*.tsx # Files you want to preview
 ├── public/
-│   ├── index.html        # Terminal-style server dashboard
-│   └── *.svg             # Static assets
+│   └── *                 # Static assets served directly from the site root
 ├── next.config.js        # Next.js configuration
 ├── tsconfig.json         # TypeScript configuration
 ├── postcss.config.mjs    # PostCSS / Tailwind configuration
@@ -81,9 +86,31 @@ Simple-Server-1.0/
 
 ---
 
-## Serving Static Files
+## Where To Put Files
 
-Place any static file inside the `public/` directory to serve it directly:
+### Preview Files
+
+Put files you want to view through the dashboard in the top level of the `previews/` directory:
+
+```
+previews/
+├── landing-page.html       →  http://localhost:3000/preview/landing-page?type=html
+├── pricing-card.jsx        →  http://localhost:3000/preview/pricing-card?type=jsx
+└── dashboard-widget.tsx    →  http://localhost:3000/preview/dashboard-widget?type=tsx
+```
+
+Then open [http://localhost:3000](http://localhost:3000). The dashboard scans `previews/` and creates links for every top-level `.html`, `.jsx`, and `.tsx` file.
+
+Notes:
+
+- React preview files must default-export a React component.
+- Files beginning with `_`, such as `_placeholder.jsx`, are ignored by the dashboard.
+- The preview scanner is not recursive; put files directly inside `previews/`, not nested folders.
+- You do not need to put preview components in `app/`. The `app/` directory is for the Next.js shell/layout code.
+
+### Static Assets
+
+Place static assets that should be served directly inside `public/`:
 
 | File type | Example URL |
 |---|---|
@@ -91,31 +118,46 @@ Place any static file inside the `public/` directory to serve it directly:
 | SVG / images | `public/logo.svg` → `http://localhost:3000/logo.svg` |
 | JavaScript | `public/script.js` → `http://localhost:3000/script.js` |
 
-Files in `public/` are served at the root path with no build step required.
-
-### Rendering JSX / TSX Files
-
-Place React component files inside the `app/` directory following Next.js App Router conventions:
-
-```
-app/
-└── my-component/
-    └── page.tsx      →  http://localhost:3000/my-component
-```
-
-Any valid React component exported as `default` from a `page.tsx` (or `page.jsx`) file will be rendered automatically by the Next.js server.
+Files in `public/` are served at the root path with no preview wrapper. Use this for images, scripts, downloads, and other supporting assets. If you want an HTML file to appear in the dashboard, place it in `previews/` instead.
 
 ---
 
+## Preview Behavior
+
+### HTML
+
+HTML previews are loaded from `previews/<name>.html` and displayed in an iframe at:
+
+```text
+http://localhost:3000/preview/<name>?type=html
+```
+
+### JSX / TSX
+
+JSX and TSX previews are dynamically imported from `previews/<name>.jsx` or `previews/<name>.tsx` and rendered as React components at:
+
+```text
+http://localhost:3000/preview/<name>?type=jsx
+http://localhost:3000/preview/<name>?type=tsx
+```
+
+Example:
+
+```tsx
+export default function Example() {
+  return <main>Hello from previews/example.tsx</main>;
+}
+```
+
 ## Dashboard
 
-The terminal-style dashboard (`public/index.html`) provides a visual status indicator for the server. It uses a green-on-black terminal aesthetic and shows:
+The terminal-style dashboard at [http://localhost:3000](http://localhost:3000) lists preview files from `previews/`. It uses a green-on-black terminal aesthetic and shows:
 
-- Server initialization status
-- Active port (`8080` by default in the dashboard script)
-- Blinking cursor to indicate the server is live
+- Supported file type badges for `.html`, `.jsx`, and `.tsx`
+- Links to each preview route
+- A message when no preview files are found
 
-The dashboard is served as a static file and can be customized directly in `public/index.html`.
+Refresh the dashboard after adding new files to `previews/` so they appear in the list.
 
 ---
 
@@ -137,9 +179,12 @@ These are forwarded to the browser via `next.config.js`. Do not commit `.env.loc
 ```js
 const nextConfig = {
   reactStrictMode: true,   // Highlights potential issues during development
-  swcMinify: true,         // Fast SWC-based minification on build
   images: {
     domains: ["cdn.sanity.io"],  // Allowed external image hosts
+  },
+  env: {
+    SANITY_PROJECT_ID: process.env.SANITY_PROJECT_ID,
+    SANITY_DATASET: process.env.SANITY_DATASET,
   },
 };
 ```
@@ -150,9 +195,9 @@ Extend this file to add custom rewrites, redirects, headers, or webpack configur
 
 ## Development Workflow
 
-1. **Add a file** — put `.html` in `public/` or a `page.tsx` under `app/`
+1. **Add a preview file** — put `.html`, `.jsx`, or `.tsx` directly inside `previews/`
 2. **Start the server** — `npm run dev`
-3. **View in browser** — navigate to the corresponding URL
+3. **View in browser** — open [http://localhost:3000](http://localhost:3000) and click the file
 4. **Edit and save** — the browser refreshes automatically via hot-reload
 5. **Lint before committing** — `npm run lint`
 
