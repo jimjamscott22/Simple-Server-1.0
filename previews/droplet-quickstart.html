@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Concept Master — Droplet Quick-Start</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #f8f9fa;
+      --surface:   #ffffff;
+      --border:    #dee2e6;
+      --text:      #212529;
+      --muted:     #6c757d;
+      --accent:    #0969da;
+      --accent-bg: #dbeafe;
+      --code-bg:   #1e1e2e;
+      --code-text: #cdd6f4;
+      --green:     #1a7f37;
+      --green-bg:  #dafbe1;
+      --warn-bg:   #fff8c5;
+      --warn-text: #7d4e00;
+      --radius:    8px;
+      --mono:      "JetBrains Mono", "Fira Code", "Cascadia Code", ui-monospace, monospace;
+      --sans:      "Inter", system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--text);
+      background: var(--bg);
+      padding: 2rem 1rem 4rem;
+    }
+
+    .page {
+      max-width: 780px;
+      margin: 0 auto;
+    }
+
+    /* ── Header ── */
+    header {
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+
+    header .eyebrow {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+
+    header p {
+      margin-top: 0.5rem;
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    /* ── Sections ── */
+    section {
+      margin-bottom: 2.75rem;
+    }
+
+    h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    h2 .step-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.75rem;
+      height: 1.75rem;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+      margin: 1.25rem 0 0.5rem;
+    }
+
+    p { margin-bottom: 0.75rem; }
+    p:last-child { margin-bottom: 0; }
+
+    /* ── Code blocks ── */
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      line-height: 1.6;
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      overflow-x: auto;
+      margin: 0.75rem 0;
+    }
+
+    code {
+      font-family: var(--mono);
+      font-size: 0.875em;
+      background: #e9ecef;
+      color: #c92a2a;
+      padding: 0.15em 0.4em;
+      border-radius: 4px;
+    }
+
+    pre code {
+      background: none;
+      color: inherit;
+      padding: 0;
+      font-size: inherit;
+      border-radius: 0;
+    }
+
+    /* comment-style lines in code */
+    .cm { color: #6c7086; }
+
+    /* ── Callout boxes ── */
+    .callout {
+      border-radius: var(--radius);
+      padding: 0.9rem 1.1rem;
+      margin: 1rem 0;
+      font-size: 0.93rem;
+      line-height: 1.6;
+      display: flex;
+      gap: 0.65rem;
+    }
+
+    .callout .icon { flex-shrink: 0; font-size: 1rem; margin-top: 0.1rem; }
+
+    .callout.info  { background: var(--accent-bg); color: #1e3a5f; border-left: 4px solid var(--accent); }
+    .callout.tip   { background: var(--green-bg);  color: #0d3320; border-left: 4px solid var(--green); }
+    .callout.warn  { background: var(--warn-bg);   color: var(--warn-text); border-left: 4px solid #d4a017; }
+
+    /* ── Option cards ── */
+    .option-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 600px) {
+      .option-grid { grid-template-columns: 1fr; }
+    }
+
+    .option-card {
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.1rem;
+      background: var(--surface);
+    }
+
+    .option-card .label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.3rem;
+    }
+
+    .option-card h3 {
+      margin: 0 0 0.4rem;
+      font-size: 1rem;
+    }
+
+    .option-card p {
+      font-size: 0.88rem;
+      color: var(--muted);
+      margin: 0;
+    }
+
+    .option-card.recommended {
+      border-color: var(--accent);
+      background: #f0f7ff;
+    }
+
+    .option-card.recommended .label {
+      color: var(--accent);
+    }
+
+    /* ── Steps list ── */
+    ol.steps {
+      list-style: none;
+      counter-reset: steps;
+      padding: 0;
+    }
+
+    ol.steps li {
+      counter-increment: steps;
+      display: grid;
+      grid-template-columns: 1.6rem 1fr;
+      gap: 0 0.75rem;
+      margin-bottom: 0.6rem;
+      align-items: start;
+    }
+
+    ol.steps li::before {
+      content: counter(steps);
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--accent);
+      background: var(--accent-bg);
+      border-radius: 50%;
+      width: 1.5rem;
+      height: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 0.15rem;
+      flex-shrink: 0;
+    }
+
+    /* ── Divider ── */
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2rem 0;
+    }
+
+    /* ── Footer ── */
+    footer {
+      margin-top: 3rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <div class="eyebrow">Deployment Guide</div>
+    <h1>Concept Master on a Droplet</h1>
+    <p>Run the app on a Digital Ocean Droplet and access it from any device on your Tailnet.</p>
+  </header>
+
+  <!-- ── Prerequisites ── -->
+  <section>
+    <h2><span class="step-badge">0</span> Prerequisites</h2>
+    <p>Before you start, make sure you have:</p>
+    <ol class="steps">
+      <li>A running Digital Ocean Droplet (Ubuntu 22.04+ recommended) with SSH access.</li>
+      <li>A Tailscale account and at least one other device already on your Tailnet.</li>
+      <li>The Concept Master repo cloned onto the Droplet (or pushed there via Git).</li>
+      <li><code>uv</code> installed on the Droplet (<code>curl -LsSf https://astral.sh/uv/install.sh | sh</code>).</li>
+      <li>Node.js 20+ installed on the Droplet (<code>curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - && sudo apt-get install -y nodejs</code>).</li>
+    </ol>
+  </section>
+
+  <!-- ── Tailscale ── -->
+  <section>
+    <h2><span class="step-badge">1</span> Add the Droplet to your Tailnet</h2>
+
+    <p>SSH into your Droplet and run:</p>
+    <pre><span class="cm"># Install Tailscale</span>
+curl -fsSL https://tailscale.com/install.sh | sh
+sudo tailscale up</pre>
+
+    <p>Tailscale prints an authentication URL — open it in a browser and approve the device. Then grab the Droplet's Tailscale IP:</p>
+    <pre>tailscale ip -4   <span class="cm"># e.g. 100.64.x.x — note this down</span></pre>
+
+    <div class="callout tip">
+      <span class="icon">💡</span>
+      <span>Set a stable machine name in the Tailscale admin console (e.g. <strong>concept-droplet</strong>) so you can reach it via <code>http://concept-droplet</code> instead of a raw IP.</span>
+    </div>
+  </section>
+
+  <!-- ── Choose an option ── -->
+  <section>
+    <h2><span class="step-badge">2</span> Choose how to serve the app</h2>
+
+    <div class="option-grid">
+      <div class="option-card">
+        <div class="label">Option A</div>
+        <h3>Dev servers</h3>
+        <p>Run Vite and uvicorn side-by-side. Fast to set up; no build step needed. Fine for personal use.</p>
+      </div>
+      <div class="option-card recommended">
+        <div class="label">Option B — Recommended</div>
+        <h3>Build + serve from FastAPI</h3>
+        <p>Build the frontend once, serve everything from a single port. More stable; no Vite process to babysit.</p>
+      </div>
+    </div>
+
+    <hr />
+
+    <!-- Option A -->
+    <h3>Option A — Dev servers</h3>
+    <p>Open two terminal sessions (or use <code>tmux</code> panes) on the Droplet.</p>
+
+    <p><strong>Terminal 1 — Backend:</strong></p>
+    <pre>cd /path/to/Concept-Master
+uv run uvicorn backend.main:app --reload --port 8000 --host 0.0.0.0</pre>
+
+    <p><strong>Terminal 2 — Frontend:</strong></p>
+    <pre>cd /path/to/Concept-Master/frontend
+npm install
+npx vite --host 0.0.0.0</pre>
+
+    <p>Access the app from any Tailnet device at:</p>
+    <pre>http://&lt;tailscale-ip&gt;:5173</pre>
+
+    <hr />
+
+    <!-- Option B -->
+    <h3>Option B — Build + serve from FastAPI</h3>
+
+    <p><strong>Step 1.</strong> Build the frontend:</p>
+    <pre>cd /path/to/Concept-Master/frontend
+npm install
+npm run build   <span class="cm"># produces frontend/dist/</span></pre>
+
+    <p><strong>Step 2.</strong> Mount the static files in FastAPI. Open <code>backend/main.py</code> and add these lines <em>after</em> all <code>/api</code> routers are registered:</p>
+    <pre><span class="cm"># backend/main.py</span>
+from fastapi.staticfiles import StaticFiles
+import os
+
+DIST = os.path.join(os.path.dirname(__file__), "../frontend/dist")
+app.mount("/", StaticFiles(directory=DIST, html=True), name="static")</pre>
+
+    <div class="callout warn">
+      <span class="icon">⚠️</span>
+      <span>The static mount must come <strong>last</strong> — after all <code>/api</code> routes — or it will catch API requests before they reach your routers.</span>
+    </div>
+
+    <p><strong>Step 3.</strong> Start only uvicorn:</p>
+    <pre>cd /path/to/Concept-Master
+uv run uvicorn backend.main:app --port 8000 --host 0.0.0.0</pre>
+
+    <p>Access the app at:</p>
+    <pre>http://&lt;tailscale-ip&gt;:8000</pre>
+  </section>
+
+  <!-- ── Keep it running ── -->
+  <section>
+    <h2><span class="step-badge">3</span> Keep it running after you disconnect</h2>
+
+    <p>Use <code>tmux</code> so the process survives SSH disconnects:</p>
+    <pre><span class="cm"># Create a new session</span>
+tmux new -s concept
+
+<span class="cm"># Run your start command inside the session, then detach:</span>
+<span class="cm"># Ctrl+B, then D</span>
+
+<span class="cm"># Reattach later:</span>
+tmux attach -t concept</pre>
+
+    <p>For a more permanent setup, create a systemd service:</p>
+    <pre><span class="cm"># /etc/systemd/system/concept-master.service</span>
+[Unit]
+Description=Concept Master
+After=network.target
+
+[Service]
+User=YOUR_USER
+WorkingDirectory=/path/to/Concept-Master
+ExecStart=/home/YOUR_USER/.local/bin/uv run uvicorn backend.main:app --port 8000 --host 0.0.0.0
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target</pre>
+
+    <pre><span class="cm"># Enable and start</span>
+sudo systemctl daemon-reload
+sudo systemctl enable --now concept-master
+sudo systemctl status concept-master</pre>
+
+    <div class="callout tip">
+      <span class="icon">💡</span>
+      <span>Find the correct path to <code>uv</code> with <code>which uv</code> and substitute it into <code>ExecStart</code>.</span>
+    </div>
+  </section>
+
+  <!-- ── Firewall note ── -->
+  <section>
+    <h2><span class="step-badge">4</span> Firewall note</h2>
+
+    <p>Because you're using Tailscale, you don't need to open port 8000 on the Droplet's public firewall — Tailscale traffic is end-to-end encrypted and separate from the public network. If you have UFW enabled, you can leave it blocking 8000 externally and the app will still be reachable via the Tailscale IP.</p>
+
+    <div class="callout info">
+      <span class="icon">ℹ️</span>
+      <span>Only SSH (port 22) needs to be open publicly — or you can go fully private and SSH in over Tailscale too, then disable the public SSH rule.</span>
+    </div>
+  </section>
+
+  <!-- ── Quick reference ── -->
+  <section>
+    <h2>Quick reference</h2>
+
+    <table style="width:100%;border-collapse:collapse;font-size:0.9rem;">
+      <thead>
+        <tr style="background:#f1f3f5;text-align:left;">
+          <th style="padding:0.6rem 0.8rem;border:1px solid var(--border);">What</th>
+          <th style="padding:0.6rem 0.8rem;border:1px solid var(--border);">Command / URL</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="padding:0.55rem 0.8rem;border:1px solid var(--border);">Get Tailscale IP</td>
+          <td style="padding:0.55rem 0.8rem;border:1px solid var(--border);font-family:var(--mono);font-size:0.82rem;"><code>tailscale ip -4</code></td>
+        </tr>
+        <tr style="background:#f8f9fa;">
+          <td style="padding:0.55rem 0.8rem;border:1px solid var(--border);">Build frontend</td>
+          <td style="padding:0.55rem 0.8rem;border:1px solid var(--border);font-family:var(--mono);font-size:0.82rem;"><code>cd frontend &amp;&amp; npm run build</code></td>
+        </tr>
+        <tr>
+          <td style="padding:0.55rem 0.8rem;border:1px solid var(--border);">Start backend (Option B)</td>
+          <td style="padding:0.55rem 0.8rem;border:1px solid var(--border);font-family:var(--mono);font-size:0.82rem;"><code>uv run uvicorn backend.main:app --port 8000 --host 0.0.0.0</code></td>
+        </tr>
+        <tr style="background:#f8f9fa;">
+          <td style="padding:0.55rem 0.8rem;border:1px solid var(--border);">App URL (Option B)</td>
+          <td style="padding:0.55rem 0.8rem;border:1px solid var(--border);font-family:var(--mono);font-size:0.82rem;"><code>http://&lt;tailscale-ip&gt;:8000</code></td>
+        </tr>
+        <tr>
+          <td style="padding:0.55rem 0.8rem;border:1px solid var(--border);">App URL (Option A)</td>
+          <td style="padding:0.55rem 0.8rem;border:1px solid var(--border);font-family:var(--mono);font-size:0.82rem;"><code>http://&lt;tailscale-ip&gt;:5173</code></td>
+        </tr>
+        <tr style="background:#f8f9fa;">
+          <td style="padding:0.55rem 0.8rem;border:1px solid var(--border);">View systemd logs</td>
+          <td style="padding:0.55rem 0.8rem;border:1px solid var(--border);font-family:var(--mono);font-size:0.82rem;"><code>journalctl -u concept-master -f</code></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <footer>
+    Concept Master · Droplet Quick-Start · Generated 2026-06-10
+  </footer>
+
+</div>
+</body>
+</html>
