@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Simple-Server</title>
+    <script src="simple-server.js"></script>
+    <script>
+        SimpleServer.start(8080);
+    </script>
+    <style>
+        body {
+            background-color: #000;
+            color: #0f0;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 20px;
+        }
+        .prompt::before {
+            content: "$ ";
+        }
+        .blinking-cursor {
+            animation: blink 1s step-end infinite;
+        }
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <p>Simple-Server initialized successfully.</p>
+        <p class="prompt">Running server on port 8080...</p>
+        <p>Welcome to the terminal interface.<span class="blinking-cursor">_</span></p>
+    </div>
+</body>
+</html>
