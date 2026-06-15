@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Terminal AI Agent Workflow Cheatsheet</title>
+  <style>
+    :root {
+      --bg: #070b12;
+      --panel: rgba(15, 23, 42, 0.78);
+      --line: rgba(148, 163, 184, 0.22);
+      --text: #f8fafc;
+      --muted: #cbd5e1;
+      --cyan: #67e8f9;
+      --green: #86efac;
+      --violet: #c4b5fd;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 10% 10%, rgba(103, 232, 249, 0.18), transparent 30rem),
+        radial-gradient(circle at 85% 15%, rgba(196, 181, 253, 0.18), transparent 26rem),
+        var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      padding: 36px;
+    }
+    .wrap { max-width: 1120px; margin: 0 auto; }
+    .hero, .panel {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: 30px;
+      box-shadow: 0 24px 90px rgba(0, 0, 0, 0.34);
+    }
+    .hero { padding: 34px; }
+    .eyebrow { color: var(--cyan); letter-spacing: 0.16em; text-transform: uppercase; font-size: 0.78rem; margin: 0 0 12px; }
+    h1 { font-size: clamp(2.2rem, 5vw, 4.8rem); line-height: 0.96; margin: 0; max-width: 900px; }
+    .lede { color: var(--muted); font-size: 1.07rem; line-height: 1.7; max-width: 76ch; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 24px; }
+    .panel { padding: 24px; }
+    .flow { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 18px; }
+    .flow button {
+      min-height: 118px;
+      border-radius: 20px;
+      border: 1px solid rgba(103, 232, 249, 0.18);
+      background: rgba(2, 6, 23, 0.64);
+      color: var(--text);
+      font-weight: 900;
+      cursor: pointer;
+      padding: 12px;
+    }
+    .flow button.active { border-color: var(--cyan); background: linear-gradient(135deg, rgba(14, 165, 233, 0.34), rgba(124, 58, 237, 0.24)); }
+    .icon { display: block; font-size: 2rem; margin-bottom: 8px; }
+    .terminal {
+      background: #020617;
+      border: 1px solid rgba(134, 239, 172, 0.2);
+      border-radius: 22px;
+      overflow: hidden;
+      font-family: "JetBrains Mono", "Fira Code", ui-monospace, SFMono-Regular, monospace;
+    }
+    .terminal .top { padding: 14px 16px; border-bottom: 1px solid rgba(134, 239, 172, 0.16); color: var(--green); }
+    pre { margin: 0; padding: 20px; white-space: pre-wrap; color: #dcfce7; line-height: 1.6; }
+    .accordion { display: grid; gap: 10px; }
+    .accordion button {
+      width: 100%;
+      text-align: left;
+      border: 1px solid var(--line);
+      background: rgba(2, 6, 23, 0.56);
+      color: var(--text);
+      border-radius: 18px;
+      padding: 15px 16px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+    .accordion p { display: none; color: var(--muted); line-height: 1.6; margin: 0; padding: 0 16px 16px; }
+    .accordion .open p { display: block; }
+    .copy-row { display: flex; gap: 10px; margin-top: 16px; }
+    input {
+      flex: 1;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(2, 6, 23, 0.7);
+      color: var(--text);
+      padding: 13px 14px;
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+    }
+    .copy-row button {
+      border: 1px solid rgba(103, 232, 249, 0.24);
+      background: rgba(14, 165, 233, 0.18);
+      color: var(--text);
+      border-radius: 16px;
+      padding: 0 16px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+    .toast { color: var(--green); min-height: 24px; margin-top: 10px; font-weight: 800; }
+    @media (max-width: 900px) {
+      body { padding: 22px; }
+      .grid, .flow { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <p class="eyebrow">Standalone HTML preview</p>
+      <h1>Terminal AI agent workflow cheatsheet</h1>
+      <p class="lede">A portable, no-build guide for planning, prompting, testing, and reviewing code with terminal agents. Click a stage to update the command block, then steal the prompt starter like a responsible code raccoon.</p>
+      <div class="flow" id="flow"></div>
+    </section>
+
+    <section class="grid">
+      <article class="panel">
+        <p class="eyebrow">Current stage</p>
+        <h2 id="stageTitle">Scope</h2>
+        <div class="terminal">
+          <div class="top">agent-command.txt</div>
+          <pre id="stageText"></pre>
+        </div>
+        <div class="copy-row">
+          <input id="promptInput" value="Inspect this repo and create a small implementation plan. Do not edit yet." />
+          <button id="copyBtn">Copy</button>
+        </div>
+        <div class="toast" id="toast"></div>
+      </article>
+
+      <aside class="panel">
+        <p class="eyebrow">Guardrails</p>
+        <div class="accordion" id="accordion"></div>
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    const stages = [
+      { title: "Scope", icon: "🎯", text: "Goal: describe the feature before touching files.\nPrompt: ask the agent to inspect the repo and produce questions, assumptions, and acceptance criteria." },
+      { title: "Plan", icon: "🧭", text: "Goal: make a boring plan. Boring plans are beautiful.\nPrompt: ask for touched files, test commands, rollback notes, and edge cases." },
+      { title: "Patch", icon: "🧩", text: "Goal: edit one thin slice.\nPrompt: implement step 1 only, summarize the diff, and avoid unrelated rewrites." },
+      { title: "Verify", icon: "🧪", text: "Goal: run it, click it, break it gently.\nPrompt: run lint/tests/build, then list manual UI checks." },
+      { title: "Commit", icon: "🚀", text: "Goal: preserve the win.\nPrompt: write a clear commit message and a short changelog note." }
+    ];
+
+    const guardrails = [
+      ["Do not paste secrets", "Treat prompts like logs. API keys, tokens, private configs, and passwords stay out of the chat."],
+      ["Use branches", "Let the agent work on a branch. Main should not be the robot wrestling mat."],
+      ["Review diffs", "Read the patch before running it. Surprise rewrites are how tiny apps become haunted furniture."],
+      ["Prefer small steps", "One feature, one component, or one bug at a time. Big prompts create big mystery meat."],
+    ];
+
+    const flow = document.querySelector("#flow");
+    const title = document.querySelector("#stageTitle");
+    const text = document.querySelector("#stageText");
+    const promptInput = document.querySelector("#promptInput");
+    const toast = document.querySelector("#toast");
+
+    function renderStage(index) {
+      document.querySelectorAll(".flow button").forEach((button, buttonIndex) => {
+        button.classList.toggle("active", buttonIndex === index);
+      });
+      title.textContent = stages[index].title;
+      text.textContent = stages[index].text;
+      promptInput.value = `Help me with the ${stages[index].title.toLowerCase()} stage for this repo. ${stages[index].text.split("\n")[1].replace("Prompt: ", "")}`;
+    }
+
+    stages.forEach((stage, index) => {
+      const button = document.createElement("button");
+      button.innerHTML = `<span class="icon">${stage.icon}</span>${stage.title}`;
+      button.addEventListener("click", () => renderStage(index));
+      flow.appendChild(button);
+    });
+
+    const accordion = document.querySelector("#accordion");
+    guardrails.forEach(([heading, body], index) => {
+      const item = document.createElement("div");
+      item.className = index === 0 ? "open" : "";
+      item.innerHTML = `<button>${heading}</button><p>${body}</p>`;
+      item.querySelector("button").addEventListener("click", () => item.classList.toggle("open"));
+      accordion.appendChild(item);
+    });
+
+    document.querySelector("#copyBtn").addEventListener("click", async () => {
+      await navigator.clipboard.writeText(promptInput.value);
+      toast.textContent = "Copied to clipboard.";
+      setTimeout(() => toast.textContent = "", 1500);
+    });
+
+    renderStage(0);
+  </script>
+</body>
+</html>

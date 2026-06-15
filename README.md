@@ -112,11 +112,11 @@ Notes:
 
 Place static assets that should be served directly inside `public/`:
 
-| File type | Example URL |
-|---|---|
-| HTML | `public/my-page.html` → `http://localhost:3000/my-page.html` |
-| SVG / images | `public/logo.svg` → `http://localhost:3000/logo.svg` |
-| JavaScript | `public/script.js` → `http://localhost:3000/script.js` |
+| File type    | Example URL                                                  |
+|--------------|--------------------------------------------------------------|
+| HTML         | `public/my-page.html` → `http://localhost:3000/my-page.html` |
+| SVG / images | `public/logo.svg` → `http://localhost:3000/logo.svg`         |
+| JavaScript   | `public/script.js` → `http://localhost:3000/script.js`       |
 
 Files in `public/` are served at the root path with no preview wrapper. Use this for images, scripts, downloads, and other supporting assets. If you want an HTML file to appear in the dashboard, place it in `previews/` instead.
 
