@@ -11,6 +11,9 @@ export interface StorageAdapter {
 
   /** Raw HTML for a preview, or `null` if it does not exist. */
   getHtml(slug: string): Promise<string | null>;
+
+  /** Stores (creates or overwrites) the HTML for a preview. */
+  putHtml(slug: string, content: string): Promise<void>;
 }
 
 export interface FileEntry {

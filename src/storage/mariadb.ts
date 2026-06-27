@@ -66,4 +66,12 @@ export const mariadbStorage: StorageAdapter = {
     );
     return rows.length ? rows[0].content : null;
   },
+
+  async putHtml(slug, content) {
+    await getPool().query(
+      `INSERT INTO \`${TABLE}\` (slug, content) VALUES (?, ?)
+       ON DUPLICATE KEY UPDATE content = VALUES(content)`,
+      [slug, content],
+    );
+  },
 };

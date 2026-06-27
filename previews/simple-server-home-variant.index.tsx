@@ -1,8 +1,15 @@
+import { useRef, useState, type DragEvent } from 'react';
+import { useRouter } from 'next/router';
+
 interface FileEntry {
   name: string;
   base: string;
   ext: string;
 }
+
+type UploadStatus = 'idle' | 'uploading' | 'success' | 'error';
+
+const ACCEPTED_EXTS = ['html', 'jsx', 'tsx'];
 
 interface Props {
   files: FileEntry[];
@@ -71,6 +78,71 @@ export default function SimpleServerHome({ files = SAMPLE_FILES }: Props) {
 
   const newestFile = files[files.length - 1];
   const totalKinds = Object.keys(counts).length;
+
+  const router = useRouter();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [dragging, setDragging] = useState(false);
+  const [status, setStatus] = useState<UploadStatus>('idle');
+  const [message, setMessage] = useState('');
+
+  async function uploadFiles(list: FileList | null) {
+    const selected = list ? Array.from(list) : [];
+    if (selected.length === 0) return;
+
+    setStatus('uploading');
+    setMessage(`Uploading ${selected.length} file${selected.length === 1 ? '' : 's'}…`);
+
+    const saved: string[] = [];
+    const failed: string[] = [];
+
+    for (const file of selected) {
+      const ext = file.name.split('.').pop()?.toLowerCase() ?? '';
+      if (!ACCEPTED_EXTS.includes(ext)) {
+        failed.push(`${file.name} (unsupported type)`);
+        continue;
+      }
+      try {
+        const content = await file.text();
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: file.name, content }),
+        });
+        if (res.ok) {
+          saved.push(file.name);
+        } else {
+          const data = await res.json().catch(() => ({} as { error?: string }));
+          failed.push(`${file.name} (${data.error ?? res.statusText})`);
+        }
+      } catch (err) {
+        failed.push(`${file.name} (${err instanceof Error ? err.message : 'failed'})`);
+      }
+    }
+
+    if (failed.length === 0) {
+      setStatus('success');
+      setMessage(`Added ${saved.length} file${saved.length === 1 ? '' : 's'}.`);
+    } else {
+      setStatus('error');
+      setMessage(`${saved.length} added · ${failed.length} failed: ${failed.join(', ')}`);
+    }
+
+    // Re-run getServerSideProps so the new cards show up.
+    if (saved.length > 0) {
+      router.replace(router.asPath, undefined, { scroll: false });
+    }
+  }
+
+  function handleDrop(event: DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    setDragging(false);
+    void uploadFiles(event.dataTransfer.files);
+  }
+
+  function handleDragOver(event: DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    setDragging(true);
+  }
 
   return (
     <main className="page">
@@ -149,7 +221,51 @@ export default function SimpleServerHome({ files = SAMPLE_FILES }: Props) {
             <p className="eyebrow">Launch Pad</p>
             <h2 id="preview-title">Available previews</h2>
           </div>
-          <p className="section-head__note">Refresh after adding new files.</p>
+          <p className="section-head__note">Drop a file below to add it instantly.</p>
+        </div>
+
+        <div
+          className={`dropzone${dragging ? ' dropzone--active' : ''}${
+            status === 'uploading' ? ' dropzone--busy' : ''
+          }`}
+          role="button"
+          tabIndex={0}
+          aria-label="Upload preview files to previews/"
+          onClick={() => inputRef.current?.click()}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              inputRef.current?.click();
+            }
+          }}
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          onDragLeave={() => setDragging(false)}
+        >
+          <input
+            ref={inputRef}
+            type="file"
+            accept=".html,.jsx,.tsx"
+            multiple
+            hidden
+            onChange={(event) => {
+              void uploadFiles(event.target.files);
+              event.target.value = '';
+            }}
+          />
+          <span className="dropzone__icon" aria-hidden="true">↑</span>
+          <p className="dropzone__title">
+            {status === 'uploading' ? 'Uploading…' : 'Drop files here, or click to upload'}
+          </p>
+          <p className="dropzone__hint">
+            <code>.tsx</code> <code>.jsx</code> <code>.html</code> — saved into{' '}
+            <code>previews/</code>
+          </p>
+          {message && (
+            <p className={`dropzone__msg dropzone__msg--${status}`} role="status">
+              {message}
+            </p>
+          )}
         </div>
 
         {files.length === 0 ? (
@@ -567,6 +683,79 @@ export default function SimpleServerHome({ files = SAMPLE_FILES }: Props) {
           font-family: var(--mono);
           font-size: 0.78rem;
         }
+
+        .dropzone {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 0.4rem;
+          margin-bottom: 1.25rem;
+          padding: clamp(1.25rem, 4vw, 2rem);
+          border: 1px dashed var(--line-strong);
+          border-radius: 1.2rem;
+          background: rgba(255, 255, 255, 0.03);
+          text-align: center;
+          cursor: pointer;
+          transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+        }
+
+        .dropzone:hover,
+        .dropzone:focus-visible {
+          border-color: rgba(97, 218, 251, 0.55);
+          background: rgba(97, 218, 251, 0.06);
+          outline: none;
+        }
+
+        .dropzone:focus-visible {
+          outline: 2px solid var(--blue);
+          outline-offset: 4px;
+        }
+
+        .dropzone--active {
+          border-color: var(--green);
+          background: rgba(61, 220, 132, 0.08);
+          transform: translateY(-2px);
+        }
+
+        .dropzone--busy {
+          cursor: progress;
+          opacity: 0.85;
+        }
+
+        .dropzone__icon {
+          display: grid;
+          place-items: center;
+          width: 2.6rem;
+          height: 2.6rem;
+          border-radius: 0.9rem;
+          color: #04110a;
+          background: linear-gradient(135deg, var(--green), var(--blue));
+          font-weight: 900;
+          font-size: 1.2rem;
+        }
+
+        .dropzone__title {
+          margin: 0;
+          font-weight: 700;
+        }
+
+        .dropzone__hint {
+          margin: 0;
+          color: var(--muted);
+          font-size: 0.85rem;
+        }
+
+        .dropzone__msg {
+          margin: 0.35rem 0 0;
+          font-family: var(--mono);
+          font-size: 0.78rem;
+          line-height: 1.5;
+          word-break: break-word;
+        }
+
+        .dropzone__msg--success { color: var(--green); }
+        .dropzone__msg--error { color: var(--pink); }
+        .dropzone__msg--uploading { color: var(--blue); }
 
         .cards {
           display: grid;

@@ -2,7 +2,7 @@ import type { StorageAdapter } from './types';
 import { localStorage } from './local';
 
 export type { StorageAdapter, FileEntry } from './types';
-export { listLocalReactFiles } from './local';
+export { listLocalReactFiles, writeLocalReactFile } from './local';
 
 /**
  * Returns the active HTML storage backend, selected by `STORAGE_BACKEND`:
