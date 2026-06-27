@@ -174,6 +174,57 @@ SANITY_DATASET=your_dataset
 
 These are forwarded to the browser via `next.config.js`. Do not commit `.env.local` to version control.
 
+---
+
+## Storage Backends
+
+HTML previews can be served from a pluggable backend, selected with the
+`STORAGE_BACKEND` environment variable. JSX/TSX previews are always read from the
+local `previews/` directory because Next.js compiles and bundles them at build
+time — they can't be served from a remote store without a runtime compiler.
+
+| `STORAGE_BACKEND` | Source of HTML previews |
+|---|---|
+| `local` *(default)* | `previews/*.html` on disk — original behaviour |
+| `mariadb` | A `previews` table on your LAN MariaDB server |
+
+The backend abstraction lives in [`src/storage/`](src/storage/): a small
+`StorageAdapter` interface (`listHtml`, `getHtml`) with `local` and `mariadb`
+implementations, selected by [`getStorage()`](src/storage/index.ts).
+
+### MariaDB backend
+
+1. **Create the table** on your MariaDB server:
+
+   ```bash
+   mariadb -h <host> -u <user> -p <database> < db/schema.sql
+   ```
+
+2. **Configure `.env.local`** (see [`.env.local.example`](.env.local.example)):
+
+   ```env
+   STORAGE_BACKEND=mariadb
+   MARIADB_HOST=192.168.1.50
+   MARIADB_PORT=3306
+   MARIADB_USER=simple_server
+   MARIADB_PASSWORD=change_me
+   MARIADB_DATABASE=simple_server
+   ```
+
+3. **Migrate any existing HTML previews** into the table (optional, re-runnable):
+
+   ```bash
+   node scripts/import-html-to-mariadb.mjs
+   ```
+
+4. **Start the server** — `npm run dev`. The dashboard now lists HTML previews
+   from MariaDB (plus local JSX/TSX), and `/api/html` serves their content from
+   the database.
+
+Connections use a pooled singleton (`mariadb` connector) that survives dev
+hot-reloads. Set `STORAGE_BACKEND=local` (or unset it) to revert to the
+filesystem at any time.
+
 ### Next.js Config (`next.config.js`)
 
 ```js

@@ -79,7 +79,7 @@ const stackData = [
   },
 ];
 
-const categoryIcons = {
+const categoryIcons: Record<string, string> = {
   "Frontend (Web UI)": "⬡",
   "Meta-Frameworks": "⬢",
   "Backend / Server": "⚙",
@@ -90,8 +90,8 @@ const categoryIcons = {
 };
 
 export default function TechStackTable() {
-  const [activeCategory, setActiveCategory] = useState(null);
-  const [hoveredRow, setHoveredRow] = useState(null);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [hoveredRow, setHoveredRow] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
   const filtered = stackData.map(cat => ({

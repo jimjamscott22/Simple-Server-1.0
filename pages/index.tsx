@@ -1,35 +1,26 @@
-import fs from 'fs';
-import path from 'path';
 import { GetServerSideProps } from 'next';
-
-interface FileEntry {
-  name: string;
-  base: string;
-  ext: string;
-}
+import { getStorage, listLocalReactFiles, type FileEntry } from '@/src/storage';
 
 interface Props {
   files: FileEntry[];
 }
 
 export const getServerSideProps: GetServerSideProps<Props> = async () => {
-  const dir = path.join(process.cwd(), 'previews');
-  const ALLOWED = ['.tsx', '.jsx', '.html'];
+  // JSX/TSX always come from the local filesystem (Next.js bundles them).
+  const reactFiles = listLocalReactFiles();
 
-  let files: FileEntry[] = [];
+  // HTML comes from the active storage backend (local fs or MariaDB).
+  let htmlFiles: FileEntry[] = [];
   try {
-    files = fs
-      .readdirSync(dir)
-      .filter(f => ALLOWED.includes(path.extname(f).toLowerCase()) && !f.startsWith('_'))
-      .map(f => ({
-        name: f,
-        base: path.basename(f, path.extname(f)),
-        ext: path.extname(f).slice(1).toLowerCase(),
-      }))
-      .sort((a, b) => a.name.localeCompare(b.name));
-  } catch {
-    // previews/ doesn't exist yet
+    const bases = await getStorage().listHtml();
+    htmlFiles = bases.map(base => ({ name: `${base}.html`, base, ext: 'html' }));
+  } catch (err) {
+    console.error('Failed to list HTML previews:', err);
   }
+
+  const files = [...reactFiles, ...htmlFiles].sort((a, b) =>
+    a.name.localeCompare(b.name),
+  );
 
   return { props: { files } };
 };
