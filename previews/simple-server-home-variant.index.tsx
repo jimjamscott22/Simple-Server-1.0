@@ -1,7 +1,3 @@
-import fs from 'fs';
-import path from 'path';
-import { GetServerSideProps } from 'next';
-
 interface FileEntry {
   name: string;
   base: string;
@@ -19,32 +15,15 @@ type LanguageMeta = {
   description: string;
 };
 
-const ALLOWED_EXTENSIONS = ['.tsx', '.jsx', '.html'];
-
-export const getServerSideProps: GetServerSideProps<Props> = async () => {
-  const dir = path.join(process.cwd(), 'previews');
-
-  let files: FileEntry[] = [];
-
-  try {
-    files = fs
-      .readdirSync(dir)
-      .filter((file) => {
-        const ext = path.extname(file).toLowerCase();
-        return ALLOWED_EXTENSIONS.includes(ext) && !file.startsWith('_');
-      })
-      .map((file) => ({
-        name: file,
-        base: path.basename(file, path.extname(file)),
-        ext: path.extname(file).slice(1).toLowerCase(),
-      }))
-      .sort((a, b) => a.name.localeCompare(b.name));
-  } catch {
-    // previews/ does not exist yet, so the homepage becomes a friendly empty state.
-  }
-
-  return { props: { files } };
-};
+// This is a standalone preview, rendered client-side via the dynamic import in
+// pages/preview/[slug].tsx. It can't read the filesystem, so it ships with sample
+// data; the real dashboard lives in pages/index.tsx.
+const SAMPLE_FILES: FileEntry[] = [
+  { name: 'droplet-quickstart.html', base: 'droplet-quickstart', ext: 'html' },
+  { name: 'Guide-ReactBasics.jsx', base: 'Guide-ReactBasics', ext: 'jsx' },
+  { name: 'practice-project-builder.tsx', base: 'practice-project-builder', ext: 'tsx' },
+  { name: 'tech-stack-table.tsx', base: 'tech-stack-table', ext: 'tsx' },
+];
 
 const LANGS: Record<string, LanguageMeta> = {
   tsx: {
@@ -84,7 +63,7 @@ function titleFromBase(base: string) {
     .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
-export default function SimpleServerHome({ files }: Props) {
+export default function SimpleServerHome({ files = SAMPLE_FILES }: Props) {
   const counts = files.reduce<Record<string, number>>((acc, file) => {
     acc[file.ext] = (acc[file.ext] ?? 0) + 1;
     return acc;

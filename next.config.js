@@ -2,11 +2,10 @@
 const nextConfig = {
   /* config options here */
   reactStrictMode: true,
-  webpack(config, { isServer }) {
-    if (!isServer) {
-      config.resolve.fallback = { ...config.resolve.fallback, fs: false, path: false };
-    }
-    return config;
+  turbopack: {
+    // Pin the workspace root to this project; a stray lockfile in a parent
+    // directory otherwise makes Turbopack infer the wrong root.
+    root: __dirname,
   },
   images: {
     remotePatterns: [
